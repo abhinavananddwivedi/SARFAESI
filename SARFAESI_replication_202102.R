@@ -39,14 +39,16 @@ firm_data_raw <- firm_capex %>%
   dplyr::filter(`Industry type` == 1)
 
 
-# func_neg_NA_vec <- function(vec)
-# {
-#   #This function accepts a vector and turns its negative entries to NA
-#   #This is used to convert vectors such as 'total assets' where there 
-#   #may be negative entries by mistake, to those with no negative entries
-#   vec[vec < 0] <- NA
-#   return(vec)
-# }
+# Converting negative entries for positive variables to NA
+firm_data_raw$`Total assets` <- ifelse(firm_data_raw$`Total assets` <= 0, NA, 
+                                       firm_data_raw$`Total assets`)
+firm_data_raw$`BV per Share` <- ifelse(firm_data_raw$`BV per Share` <= 0, NA,
+                                       firm_data_raw$`BV per Share`)
+firm_data_raw$`Net sales` <- ifelse(firm_data_raw$`Net sales` < 0, NA,
+                                    firm_data_raw$`Net sales`)
+firm_data_raw$Sales <- ifelse(firm_data_raw$Sales < 0, NA,
+                                    firm_data_raw$Sales)
+
 
 firm_data <- firm_data_raw %>%
   dplyr::mutate(Debt_ratio = Debt/`Total assets`,
@@ -65,9 +67,15 @@ firm_data <- firm_data_raw %>%
                   Unsec_debt_ratio, Size, Tangibility, Operating_Profitability,
                   ln_Sales, MB, Capex, ROA)) 
 
+### No winsorization done ###
 
 ### Correlation matrix (table 2) ###
 
 corr_matrix <- firm_data %>%
   dplyr::select(Debt_ratio:ROA) %>%
   cor(., use = "complete.obs")
+
+### Descriptive Stats (table 3) ###
+
+summ_stats <- apply(firm_data[, 6:15], 2, summary)
+summ_stats_table <- t(summ_stats)
